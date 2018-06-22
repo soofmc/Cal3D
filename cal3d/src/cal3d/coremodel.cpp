@@ -886,6 +886,30 @@ bool CalCoreModel::loadCoreSkeleton(const std::string& strFilename)
   return bool(m_pCoreSkeleton);
 }
 
+
+/*****************************************************************************/
+/** Loads the core skeleton.
+*
+* This function loads the core skeleton from an XML buffer.
+*
+* @param inputBuffer The buffer from which the core skeleton should be loaded from.
+*
+* @return One of the following values:
+*         \li \b true if successful
+*         \li \b false if an error happend
+*****************************************************************************/
+
+bool CalCoreModel::loadCoreSkeleton(unsigned char * inputBuffer, bool isXML)
+{
+	// recast the input
+	const char* buffer = (const char*)inputBuffer;
+
+	// load a new core skeleton
+	m_pCoreSkeleton = CalLoader::loadXmlCoreSkeleton(buffer);
+	if (!m_pCoreSkeleton) return false;
+
+	return true;
+}
  /*****************************************************************************/
 /** Saves a core animation.
   *
@@ -980,11 +1004,6 @@ bool CalCoreModel::saveCoreMesh(const std::string& strFilename, int coreMeshId)
   *         \li \b true if successful
   *         \li \b false if an error happend
   *****************************************************************************/
-
-bool CalCoreModel::loadCoreSkeleton(unsigned char * data, bool isXML)
-{
-	return false;
-}
 
 bool CalCoreModel::saveCoreSkeleton(const std::string& strFilename)
 {

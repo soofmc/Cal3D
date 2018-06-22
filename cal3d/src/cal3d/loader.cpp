@@ -1604,6 +1604,311 @@ CalCoreSkeletonPtr CalLoader::loadXmlCoreSkeleton(const std::string& strFilename
 	return pCoreSkeleton;
 }
 
+
+/*****************************************************************************/
+/** Loads a core skeleton instance from an XML buffer.
+*
+* This function loads a core skeleton instance from an XML buffer.
+*
+* @param inputBuffer The buffer to load the core skeleton instance from.
+*
+* @return One of the following values:
+*         \li a pointer to the core skeleton
+*         \li \b 0 if an error happened
+*****************************************************************************/
+
+CalCoreSkeletonPtr CalLoader::loadXmlCoreSkeleton(const char* inputBuffer)
+{
+	std::stringstream str;
+	TiXmlDocument doc;
+
+	doc.Parse(static_cast<const char*>(inputBuffer));
+	if (doc.Error())
+	{
+		CalError::setLastError(CalError::FILE_PARSER_FAILED, __FILE__, __LINE__);
+		return 0;
+	}
+
+	TiXmlNode* node;
+	TiXmlElement*skeleton = doc.FirstChildElement();
+	if (!skeleton)
+	{
+		CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+		return 0;
+	}
+
+	if (stricmp(skeleton->Value(), "HEADER") == 0)
+	{
+		if (stricmp(skeleton->Attribute("MAGIC"), Cal::SKELETON_XMLFILE_MAGIC) != 0)
+		{
+			CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+			return false;
+		}
+
+		if (atoi(skeleton->Attribute("VERSION")) < Cal::EARLIEST_COMPATIBLE_FILE_VERSION)
+		{
+			CalError::setLastError(CalError::INCOMPATIBLE_FILE_VERSION, __FILE__, __LINE__);
+			return false;
+		}
+
+		skeleton = skeleton->NextSiblingElement();
+	}
+
+	if (!skeleton || stricmp(skeleton->Value(), "SKELETON") != 0)
+	{
+		CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+		return false;
+	}
+
+	if (skeleton->Attribute("MAGIC") != NULL && stricmp(skeleton->Attribute("MAGIC"), Cal::SKELETON_XMLFILE_MAGIC) != 0)
+	{
+		CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+		return false;
+	}
+
+	if (skeleton->Attribute("VERSION") != NULL && atoi(skeleton->Attribute("VERSION")) < Cal::EARLIEST_COMPATIBLE_FILE_VERSION)
+	{
+		CalError::setLastError(CalError::INCOMPATIBLE_FILE_VERSION, __FILE__, __LINE__);
+		return false;
+	}
+
+
+	// allocate a new core skeleton instance
+	CalCoreSkeletonPtr pCoreSkeleton = new CalCoreSkeleton();
+	if (!pCoreSkeleton)
+	{
+		CalError::setLastError(CalError::MEMORY_ALLOCATION_FAILED, __FILE__, __LINE__);
+		return 0;
+	}
+
+	TiXmlElement* bone;
+	for (bone = skeleton->FirstChildElement(); bone; bone = bone->NextSiblingElement())
+	{
+		if (stricmp(bone->Value(), "BONE") != 0)
+		{
+			CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+			return false;
+		}
+
+		std::string strName = bone->Attribute("NAME");
+
+
+		// get the translation of the bone
+
+		TiXmlElement* translation = bone->FirstChildElement();
+		if (!translation || stricmp(translation->Value(), "TRANSLATION") != 0)
+		{
+			CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+			return false;
+		}
+
+		float tx, ty, tz;
+
+		node = translation->FirstChild();
+		if (!node)
+		{
+			CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+			return false;
+		}
+		TiXmlText* translationdata = node->ToText();
+		if (!translationdata)
+		{
+			CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+			return false;
+		}
+		str.clear();
+		str << translationdata->Value();
+		str >> tx >> ty >> tz;
+
+		// get the rotation of the bone
+
+		TiXmlElement* rotation = translation->NextSiblingElement();
+		if (!rotation || stricmp(rotation->Value(), "ROTATION") != 0)
+		{
+			CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+			return false;
+		}
+
+		float rx, ry, rz, rw;
+
+		node = rotation->FirstChild();
+		if (!node)
+		{
+			CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+			return false;
+		}
+		TiXmlText* rotationdata = node->ToText();
+		if (!rotationdata)
+		{
+			CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+			return false;
+		}
+		str.clear();
+		str << rotationdata->Value();
+		str >> rx >> ry >> rz >> rw;
+
+		// get the bone space translation of the bone
+
+
+		TiXmlElement* translationBoneSpace = rotation->NextSiblingElement();
+		if (!rotation || stricmp(translationBoneSpace->Value(), "LOCALTRANSLATION") != 0)
+		{
+			CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+			return false;
+		}
+
+		float txBoneSpace, tyBoneSpace, tzBoneSpace;
+
+		node = translationBoneSpace->FirstChild();
+		if (!node)
+		{
+			CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+			return false;
+		}
+		TiXmlText* translationBoneSpacedata = node->ToText();
+		if (!translationBoneSpacedata)
+		{
+			CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+			return false;
+		}
+		str.clear();
+		str << translationBoneSpacedata->Value();
+		str >> txBoneSpace >> tyBoneSpace >> tzBoneSpace;
+
+		// get the bone space rotation of the bone
+
+		TiXmlElement* rotationBoneSpace = translationBoneSpace->NextSiblingElement();
+		if (!rotationBoneSpace || stricmp(rotationBoneSpace->Value(), "LOCALROTATION") != 0)
+		{
+			CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+			return false;
+		}
+
+		float rxBoneSpace, ryBoneSpace, rzBoneSpace, rwBoneSpace;
+
+		node = rotationBoneSpace->FirstChild();
+		if (!node)
+		{
+			CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+			return false;
+		}
+		TiXmlText* rotationBoneSpacedata = node->ToText();
+		if (!rotationBoneSpacedata)
+		{
+			CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+			return false;
+		}
+		str.clear();
+		str << rotationBoneSpacedata->Value();
+		str >> rxBoneSpace >> ryBoneSpace >> rzBoneSpace >> rwBoneSpace;
+
+		// get the parent bone id
+
+		TiXmlElement* parent = rotationBoneSpace->NextSiblingElement();
+		if (!parent || stricmp(parent->Value(), "PARENTID") != 0)
+		{
+			CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+			return false;
+		}
+
+
+		int parentId;
+
+		node = parent->FirstChild();
+		if (!node)
+		{
+			CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+			return false;
+		}
+		TiXmlText* parentid = node->ToText();
+		if (!parentid)
+		{
+			CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+			return false;
+		}
+		parentId = atoi(parentid->Value());
+
+		// allocate a new core bone instance
+		CalCoreBone *pCoreBone = new CalCoreBone(strName);
+		if (pCoreBone == 0)
+		{
+			CalError::setLastError(CalError::MEMORY_ALLOCATION_FAILED, __FILE__, __LINE__);
+			return 0;
+		}
+
+		// set the parent of the bone
+		pCoreBone->setParentId(parentId);
+
+		// set all attributes of the bone
+
+		CalVector trans = CalVector(tx, ty, tz);
+		CalQuaternion rot = CalQuaternion(rx, ry, rz, rw);
+
+		if (loadingMode & LOADER_ROTATE_X_AXIS)
+		{
+			if (parentId == -1) // only root bone necessary
+			{
+				// Root bone must have quaternion rotated
+				CalQuaternion x_axis_90(0.7071067811f, 0.0f, 0.0f, 0.7071067811f);
+				rot *= x_axis_90;
+				// Root bone must have translation rotated also
+				trans *= x_axis_90;
+			}
+		}
+
+
+		pCoreBone->setTranslation(trans);
+		pCoreBone->setRotation(rot);
+		pCoreBone->setTranslationBoneSpace(CalVector(txBoneSpace, tyBoneSpace, tzBoneSpace));
+		pCoreBone->setRotationBoneSpace(CalQuaternion(rxBoneSpace, ryBoneSpace, rzBoneSpace, rwBoneSpace));
+
+
+		TiXmlElement* child;
+		for (child = parent->NextSiblingElement(); child; child = child->NextSiblingElement())
+		{
+			if (stricmp(child->Value(), "CHILDID") != 0)
+			{
+				CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+				delete pCoreBone;
+				return false;
+			}
+
+			TiXmlNode *node = child->FirstChild();
+			if (!node)
+			{
+				CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+				delete pCoreBone;
+				return false;
+			}
+			TiXmlText* childid = node->ToText();
+			if (!childid)
+			{
+				CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+				delete pCoreBone;
+				return false;
+			}
+
+			int childId = atoi(childid->Value());
+
+			pCoreBone->addChildId(childId);
+		}
+
+		// set the core skeleton of the core bone instance
+		pCoreBone->setCoreSkeleton(pCoreSkeleton.get());
+
+		// add the core bone to the core skeleton instance
+		pCoreSkeleton->addCoreBone(pCoreBone);
+
+	}
+
+	doc.Clear();
+
+	pCoreSkeleton->calculateState();
+
+	return pCoreSkeleton;
+}
+
+
  /*****************************************************************************/
 /** Loads a core animation instance from a XML file.
   *

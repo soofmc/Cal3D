@@ -76,6 +76,7 @@ public:
   static CalCoreAnimationPtr loadXmlCoreAnimation(const char * buffer, CalCoreSkeleton * skel);
   static CalCoreMaterialPtr loadXmlCoreMaterial(const char * inputBuffer);
   static CalCoreMeshPtr loadXmlCoreMesh(const char * inputBuffer);
+  static CalCoreSkeletonPtr loadXmlCoreSkeleton(const char * inputBuffer);
 
   static void setLoadingMode(int flags);
 
