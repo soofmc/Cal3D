@@ -475,7 +475,7 @@ int CalCoreModel::loadCoreAnimation(const std::string& strFilename, const std::s
 	  const char* buffer = (const char*)inputBuffer;
 
 	  // load a new core animation
-	  CalCoreAnimationPtr pCoreAnimation = CalLoader::loadCoreAnimation(buffer);
+	  CalCoreAnimationPtr pCoreAnimation = CalLoader::loadXmlCoreAnimation(buffer, m_pCoreSkeleton.get());
 	  if (!pCoreAnimation) return -1;
 
 	  // add core animation to this core model
@@ -623,10 +623,43 @@ int CalCoreModel::loadCoreMaterial(const std::string& strFilename, const std::st
   return id;
 }
 
+// PTM3DOR Specific
 int CalCoreModel::loadCoreMaterial(unsigned char * data, bool isXML)
 {
 	return 0;
 }
+
+/*****************************************************************************/
+/** Loads a core material.
+*
+* This function loads a core material from an XML buffer.
+*
+* @param buffer 	The buffer from which the core material should be loaded.
+*
+* @return One of the following values:
+*         \li the assigned \b ID of the loaded core material
+*         \li \b -1 if an error happened
+*****************************************************************************/
+/*
+int CalCoreModel::loadCoreMaterial(unsigned char* inputBuffer, bool isXML)
+{
+	// the core skeleton has to be loaded already
+	if (m_pCoreSkeleton == 0)
+	{
+		CalError::setLastError(CalError::INVALID_HANDLE, __FILE__, __LINE__);
+		return -1;
+	}
+
+	// recast the input
+	const char* buffer = (const char*)inputBuffer;
+
+	// load a new core material
+	CalCoreMaterialPtr pCoreMaterial = CalLoader::loadCoreMaterial(buffer);
+	if (!pCoreMaterial) return -1;
+
+	// add core material to this core model
+	return addCoreMaterial(pCoreMaterial.get());
+}*/
 
 int CalCoreModel::loadCoreMaterial(unsigned char * data, bool isXML, const std::string & strMaterialName)
 {
