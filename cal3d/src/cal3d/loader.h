@@ -74,6 +74,7 @@ public:
   static CalCoreSkeletonPtr  loadCoreSkeleton(CalDataSource& inputSrc);
 
   static CalCoreAnimationPtr loadXmlCoreAnimation(const char * buffer, CalCoreSkeleton * skel);
+  static CalCoreMaterialPtr loadXmlCoreMaterial(const char * inputBuffer);
 
   static void setLoadingMode(int flags);
 
@@ -87,6 +88,8 @@ private:
   static CalCoreSkeletonPtr loadXmlCoreSkeleton(const std::string& strFilename);
   static CalCoreMeshPtr loadXmlCoreMesh(const std::string& strFilename);
   static CalCoreMaterialPtr loadXmlCoreMaterial(const std::string& strFilename);
+
+  
 
   static int loadingMode;
 };

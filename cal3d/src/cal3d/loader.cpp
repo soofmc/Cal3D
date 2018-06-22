@@ -2794,4 +2794,242 @@ CalCoreMaterialPtr CalLoader::loadXmlCoreMaterial(const std::string& strFilename
   return pCoreMaterial;
 }
 
+
+/*****************************************************************************/
+/** Loads a core material instance from a XML buffer.
+*
+* This function loads a core material instance from a XML buffer.
+*
+* @param inputBuffer The buffer to load the core material instance from.
+*
+* @return One of the following values:
+*         \li a pointer to the core material
+*         \li \b 0 if an error happened
+*****************************************************************************/
+
+
+CalCoreMaterialPtr CalLoader::loadXmlCoreMaterial(const char * inputBuffer)
+{
+	std::stringstream str;
+	int r, g, b, a;
+	TiXmlDocument doc;
+
+	doc.Parse(static_cast<const char*>(inputBuffer));
+	if (doc.Error())
+	{
+		CalError::setLastError(CalError::FILE_PARSER_FAILED, __FILE__, __LINE__);
+		return 0;
+	}
+
+	TiXmlNode* node;
+
+	TiXmlElement*material = doc.FirstChildElement();
+	if (!material)
+	{
+		CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+		return false;
+	}
+
+	if (stricmp(material->Value(), "HEADER") == 0)
+	{
+		if (stricmp(material->Attribute("MAGIC"), Cal::MATERIAL_XMLFILE_MAGIC) != 0)
+		{
+			CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+			return false;
+		}
+
+		if (atoi(material->Attribute("VERSION")) < Cal::EARLIEST_COMPATIBLE_FILE_VERSION)
+		{
+			CalError::setLastError(CalError::INCOMPATIBLE_FILE_VERSION, __FILE__, __LINE__);
+			return false;
+		}
+
+		material = material->NextSiblingElement();
+	}
+
+	if (!material || stricmp(material->Value(), "MATERIAL") != 0)
+	{
+		CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+		return false;
+	}
+
+	if (material->Attribute("MAGIC") != NULL && stricmp(material->Attribute("MAGIC"), Cal::MATERIAL_XMLFILE_MAGIC) != 0)
+	{
+		CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+		return false;
+	}
+
+	if (material->Attribute("VERSION") != NULL && atoi(material->Attribute("VERSION")) < Cal::EARLIEST_COMPATIBLE_FILE_VERSION)
+	{
+		CalError::setLastError(CalError::INCOMPATIBLE_FILE_VERSION, __FILE__, __LINE__);
+		return false;
+	}
+
+	CalCoreMaterialPtr pCoreMaterial = new CalCoreMaterial();
+	if (!pCoreMaterial)
+	{
+		CalError::setLastError(CalError::MEMORY_ALLOCATION_FAILED, __FILE__, __LINE__);
+		return 0;
+	}
+
+	TiXmlElement* ambient = material->FirstChildElement();
+	if (!ambient || stricmp(ambient->Value(), "AMBIENT") != 0)
+	{
+		CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+		return false;
+	}
+
+	CalCoreMaterial::Color ambientColor;
+	node = ambient->FirstChild();
+	if (!node)
+	{
+		CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+		return false;
+	}
+	TiXmlText* ambientdata = node->ToText();
+	if (!ambientdata)
+	{
+		CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+		return false;
+	}
+	str << ambientdata->Value();
+	str >> r >> g >> b >> a;
+	ambientColor.red = (unsigned char)r;
+	ambientColor.green = (unsigned char)g;
+	ambientColor.blue = (unsigned char)b;
+	ambientColor.alpha = (unsigned char)a;
+
+	TiXmlElement* diffuse = ambient->NextSiblingElement();
+	if (!diffuse || stricmp(diffuse->Value(), "DIFFUSE") != 0)
+	{
+		CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+		return false;
+	}
+
+	CalCoreMaterial::Color diffuseColor;
+	node = diffuse->FirstChild();
+	if (!node)
+	{
+		CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+		return false;
+	}
+	TiXmlText* diffusedata = node->ToText();
+	if (!diffusedata)
+	{
+		CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+		return false;
+	}
+	str.clear();
+	str << diffusedata->Value();
+	str >> r >> g >> b >> a;
+	diffuseColor.red = (unsigned char)r;
+	diffuseColor.green = (unsigned char)g;
+	diffuseColor.blue = (unsigned char)b;
+	diffuseColor.alpha = (unsigned char)a;
+
+
+	TiXmlElement* specular = diffuse->NextSiblingElement();
+	if (!specular || stricmp(specular->Value(), "SPECULAR") != 0)
+	{
+		CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+		return false;
+	}
+
+	CalCoreMaterial::Color specularColor;
+	node = specular->FirstChild();
+	if (!node)
+	{
+		CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+		return false;
+	}
+	TiXmlText* speculardata = node->ToText();
+	if (!speculardata)
+	{
+		CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+		return false;
+	}
+	str.clear();
+	str << speculardata->Value();
+	str >> r >> g >> b >> a;
+	specularColor.red = (unsigned char)r;
+	specularColor.green = (unsigned char)g;
+	specularColor.blue = (unsigned char)b;
+	specularColor.alpha = (unsigned char)a;
+
+	TiXmlElement* shininess = specular->NextSiblingElement();
+	if (!shininess || stricmp(shininess->Value(), "SHININESS") != 0)
+	{
+		CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+		return false;
+	}
+
+	float fshininess;
+	node = shininess->FirstChild();
+	if (!node)
+	{
+		CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+		return false;
+	}
+	TiXmlText* shininessdata = node->ToText();
+	if (!shininessdata)
+	{
+		CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+		return false;
+	}
+	fshininess = (float)atof(shininessdata->Value());
+
+	// set the colors and the shininess
+	pCoreMaterial->setAmbientColor(ambientColor);
+	pCoreMaterial->setDiffuseColor(diffuseColor);
+	pCoreMaterial->setSpecularColor(specularColor);
+	pCoreMaterial->setShininess(fshininess);
+
+	std::vector<std::string> MatFileName;
+
+	TiXmlElement* map;
+
+	for (map = shininess->NextSiblingElement(); map; map = map->NextSiblingElement())
+	{
+		if (!map || stricmp(map->Value(), "MAP") != 0)
+		{
+			CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+			return false;
+		}
+
+
+		node = map->FirstChild();
+		if (!node)
+		{
+			CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+			return false;
+		}
+
+		TiXmlText* mapfile = node->ToText();
+		if (!mapfile)
+		{
+			CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+			return false;
+		}
+
+		MatFileName.push_back(mapfile->Value());
+	}
+	pCoreMaterial->reserve(MatFileName.size());
+
+	for (unsigned int mapId = 0; mapId < MatFileName.size(); ++mapId)
+	{
+		CalCoreMaterial::Map Map;
+		// initialize the user data
+		Map.userData = 0;
+
+		Map.strFilename = MatFileName[mapId];
+
+		// set map in the core material instance
+		pCoreMaterial->setMap(mapId, Map);
+	}
+
+	doc.Clear();
+
+	return pCoreMaterial;
+}
+
 //****************************************************************************//

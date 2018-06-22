@@ -624,10 +624,6 @@ int CalCoreModel::loadCoreMaterial(const std::string& strFilename, const std::st
 }
 
 // PTM3DOR Specific
-int CalCoreModel::loadCoreMaterial(unsigned char * data, bool isXML)
-{
-	return 0;
-}
 
 /*****************************************************************************/
 /** Loads a core material.
@@ -640,7 +636,7 @@ int CalCoreModel::loadCoreMaterial(unsigned char * data, bool isXML)
 *         \li the assigned \b ID of the loaded core material
 *         \li \b -1 if an error happened
 *****************************************************************************/
-/*
+
 int CalCoreModel::loadCoreMaterial(unsigned char* inputBuffer, bool isXML)
 {
 	// the core skeleton has to be loaded already
@@ -654,12 +650,12 @@ int CalCoreModel::loadCoreMaterial(unsigned char* inputBuffer, bool isXML)
 	const char* buffer = (const char*)inputBuffer;
 
 	// load a new core material
-	CalCoreMaterialPtr pCoreMaterial = CalLoader::loadCoreMaterial(buffer);
+	CalCoreMaterialPtr pCoreMaterial = CalLoader::loadXmlCoreMaterial(buffer);
 	if (!pCoreMaterial) return -1;
 
 	// add core material to this core model
 	return addCoreMaterial(pCoreMaterial.get());
-}*/
+}
 
 int CalCoreModel::loadCoreMaterial(unsigned char * data, bool isXML, const std::string & strMaterialName)
 {
