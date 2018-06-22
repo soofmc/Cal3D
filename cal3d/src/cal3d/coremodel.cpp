@@ -791,9 +791,24 @@ int CalCoreModel::loadCoreMesh(const std::string& strFilename, const std::string
   return id;
 }
 
-int CalCoreModel::loadCoreMesh(unsigned char * data, bool isXML)
+int CalCoreModel::loadCoreMesh(unsigned char * inputBuffer, bool isXML)
 {
-	return 0;
+	// the core skeleton has to be loaded already
+	if (m_pCoreSkeleton == 0)
+	{
+		CalError::setLastError(CalError::INVALID_HANDLE, __FILE__, __LINE__);
+		return -1;
+	}
+
+	// recast the input
+	const char* buffer = (const char*)inputBuffer;
+
+	// load a new core mesh
+	CalCoreMeshPtr pCoreMesh = CalLoader::loadCoreMesh(buffer);
+	if (!pCoreMesh) return -1;
+
+	// add core mesh to this core model
+	return addCoreMesh(pCoreMesh.get());
 }
 
 int CalCoreModel::loadCoreMesh(unsigned char * data, bool isXML, const std::string & strMeshName)

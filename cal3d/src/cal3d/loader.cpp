@@ -2558,6 +2558,462 @@ CalCoreMeshPtr CalLoader::loadXmlCoreMesh(const std::string& strFilename)
 	return pCoreMesh;
 }
 
+
+/*****************************************************************************/
+/** Loads a core mesh instance from an Xml buffer.
+*
+* This function loads a core mesh instance from an Xml buffer.
+*
+* @param inputBuffer The buffer to load the core mesh instance from.
+*
+* @return One of the following values:
+*         \li a pointer to the core mesh
+*         \li \b 0 if an error happened
+*****************************************************************************/
+
+CalCoreMeshPtr CalLoader::loadXmlCoreMesh(const char * inputBuffer)
+{
+	std::stringstream str;
+	TiXmlDocument doc;
+
+	doc.Parse(static_cast<const char*>(inputBuffer));
+	if (doc.Error())
+	{
+		CalError::setLastError(CalError::FILE_PARSER_FAILED, __FILE__, __LINE__);
+		return 0;
+	}
+
+	TiXmlNode* node;
+
+	TiXmlElement*mesh = doc.FirstChildElement();
+	if (!mesh)
+	{
+		CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+		return false;
+	}
+
+	if (stricmp(mesh->Value(), "HEADER") == 0)
+	{
+		if (stricmp(mesh->Attribute("MAGIC"), Cal::MESH_XMLFILE_MAGIC) != 0)
+		{
+			CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+			return false;
+		}
+
+		if (atoi(mesh->Attribute("VERSION")) < Cal::EARLIEST_COMPATIBLE_FILE_VERSION)
+		{
+			CalError::setLastError(CalError::INCOMPATIBLE_FILE_VERSION, __FILE__, __LINE__);
+			return false;
+		}
+
+		mesh = mesh->NextSiblingElement();
+	}
+	if (!mesh || stricmp(mesh->Value(), "MESH") != 0)
+	{
+		CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+		return false;
+	}
+
+	if (mesh->Attribute("MAGIC") != NULL && stricmp(mesh->Attribute("MAGIC"), Cal::MESH_XMLFILE_MAGIC) != 0)
+	{
+		CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+		return false;
+	}
+
+	if (mesh->Attribute("VERSION") != NULL && atoi(mesh->Attribute("VERSION")) < Cal::EARLIEST_COMPATIBLE_FILE_VERSION)
+	{
+		CalError::setLastError(CalError::INCOMPATIBLE_FILE_VERSION, __FILE__, __LINE__);
+		return false;
+	}
+
+	// get the number of submeshes
+	int submeshCount = atoi(mesh->Attribute("NUMSUBMESH"));
+
+	// allocate a new core mesh instance
+	CalCoreMeshPtr pCoreMesh = new CalCoreMesh;
+	if (!pCoreMesh)
+	{
+		CalError::setLastError(CalError::MEMORY_ALLOCATION_FAILED, __FILE__, __LINE__);
+		return 0;
+	}
+
+	TiXmlElement*submesh = mesh->FirstChildElement();
+
+	// load all core submeshes
+	int submeshId;
+	for (submeshId = 0; submeshId < submeshCount; ++submeshId)
+	{
+		if (!submesh || stricmp(submesh->Value(), "SUBMESH") != 0)
+		{
+			CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+			return false;
+		}
+
+		// get the material thread id of the submesh
+		int coreMaterialThreadId = atoi(submesh->Attribute("MATERIAL"));
+
+		// get the number of vertices, faces, level-of-details and springs
+		int vertexCount = atoi(submesh->Attribute("NUMVERTICES"));
+
+		int faceCount = atoi(submesh->Attribute("NUMFACES"));
+
+		int lodCount = atoi(submesh->Attribute("NUMLODSTEPS"));
+
+		int springCount = atoi(submesh->Attribute("NUMSPRINGS"));
+
+		int textureCoordinateCount = atoi(submesh->Attribute("NUMTEXCOORDS"));
+
+		// allocate a new core submesh instance
+		CalCoreSubmesh *pCoreSubmesh = new CalCoreSubmesh();
+		if (pCoreSubmesh == 0)
+		{
+			CalError::setLastError(CalError::MEMORY_ALLOCATION_FAILED, __FILE__, __LINE__);
+			return 0;
+		}
+
+		// set the LOD step count
+		pCoreSubmesh->setLodCount(lodCount);
+
+		// set the core material id
+		pCoreSubmesh->setCoreMaterialThreadId(coreMaterialThreadId);
+
+		// reserve memory for all the submesh data
+		if (!pCoreSubmesh->reserve(vertexCount, textureCoordinateCount, faceCount, springCount))
+		{
+			CalError::setLastError(CalError::MEMORY_ALLOCATION_FAILED, __FILE__, __LINE__);
+			delete pCoreSubmesh;
+			return 0;
+		}
+
+		TiXmlElement *vertex = submesh->FirstChildElement();
+
+		// load all vertices and their influences
+		int vertexId;
+		for (vertexId = 0; vertexId < vertexCount; ++vertexId)
+		{
+			if (!vertex || stricmp(vertex->Value(), "VERTEX") != 0)
+			{
+				delete pCoreSubmesh;
+				CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+				return false;
+			}
+
+			CalCoreSubmesh::Vertex Vertex;
+
+			TiXmlElement *pos = vertex->FirstChildElement();
+			if (!pos || stricmp(pos->Value(), "POS") != 0)
+			{
+				delete pCoreSubmesh;
+				CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+				return false;
+			}
+
+			node = pos->FirstChild();
+			if (!node)
+			{
+				delete pCoreSubmesh;
+				CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+				return false;
+			}
+			TiXmlText* posdata = node->ToText();
+			if (!posdata)
+			{
+				delete pCoreSubmesh;
+				CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+				return false;
+			}
+			str.clear();
+			str << posdata->Value();
+			str >> Vertex.position.x >> Vertex.position.y >> Vertex.position.z;
+
+			TiXmlElement *norm = pos->NextSiblingElement();
+			if (!norm || stricmp(norm->Value(), "NORM") != 0)
+			{
+				delete pCoreSubmesh;
+				CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+				return false;
+			}
+
+			node = norm->FirstChild();
+			if (!norm)
+			{
+				delete pCoreSubmesh;
+				CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+				return false;
+			}
+			TiXmlText* normdata = node->ToText();
+			if (!normdata)
+			{
+				delete pCoreSubmesh;
+				CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+				return false;
+			}
+			str.clear();
+			str << normdata->Value();
+			str >> Vertex.normal.x >> Vertex.normal.y >> Vertex.normal.z;
+
+			TiXmlElement *collapse = norm->NextSiblingElement();
+			if (collapse && stricmp(collapse->Value(), "COLLAPSEID") == 0)
+			{
+				node = collapse->FirstChild();
+				if (!node)
+				{
+					delete pCoreSubmesh;
+					CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+					return false;
+				}
+				TiXmlText* collapseid = node->ToText();
+				if (!collapseid)
+				{
+					delete pCoreSubmesh;
+					CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+					return false;
+				}
+				Vertex.collapseId = atoi(collapseid->Value());
+
+				TiXmlElement *collapseCount = collapse->NextSiblingElement();
+				if (!collapseCount || stricmp(collapseCount->Value(), "COLLAPSECOUNT") != 0)
+				{
+					delete pCoreSubmesh;
+					CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+					return false;
+				}
+
+				node = collapseCount->FirstChild();
+				if (!node)
+				{
+					delete pCoreSubmesh;
+					CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+					return false;
+				}
+				TiXmlText* collapseCountdata = node->ToText();
+				if (!collapseCountdata)
+				{
+					delete pCoreSubmesh;
+					CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+					return false;
+				}
+				Vertex.faceCollapseCount = atoi(collapseCountdata->Value());
+				collapse = collapseCount->NextSiblingElement();
+			}
+			else
+			{
+				Vertex.collapseId = -1;
+				Vertex.faceCollapseCount = 0;
+			}
+
+
+			TiXmlElement *texcoord = collapse;
+
+			// load all texture coordinates of the vertex
+			int textureCoordinateId;
+			for (textureCoordinateId = 0; textureCoordinateId < textureCoordinateCount; ++textureCoordinateId)
+			{
+				CalCoreSubmesh::TextureCoordinate textureCoordinate;
+				// load data of the influence
+				if (!texcoord || stricmp(texcoord->Value(), "TEXCOORD") != 0)
+				{
+					delete pCoreSubmesh;
+					CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+					return false;
+				}
+
+				node = texcoord->FirstChild();
+				if (!node)
+				{
+					delete pCoreSubmesh;
+					CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+					return false;
+				}
+				TiXmlText* texcoorddata = node->ToText();
+				if (!texcoorddata)
+				{
+					delete pCoreSubmesh;
+					CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+					return false;
+				}
+				str.clear();
+				str << texcoorddata->Value();
+				str >> textureCoordinate.u >> textureCoordinate.v;
+
+				if (loadingMode & LOADER_INVERT_V_COORD)
+				{
+					textureCoordinate.v = 1.0f - textureCoordinate.v;
+				}
+
+				// set texture coordinate in the core submesh instance
+				pCoreSubmesh->setTextureCoordinate(vertexId, textureCoordinateId, textureCoordinate);
+				texcoord = texcoord->NextSiblingElement();
+			}
+
+			// get the number of influences
+			int influenceCount = atoi(vertex->Attribute("NUMINFLUENCES"));
+
+			if (influenceCount < 0)
+			{
+				CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+				delete pCoreSubmesh;
+				return 0;
+			}
+
+			// reserve memory for the influences in the vertex
+			Vertex.vectorInfluence.reserve(influenceCount);
+			Vertex.vectorInfluence.resize(influenceCount);
+
+			TiXmlElement *influence = texcoord;
+
+			// load all influences of the vertex
+			int influenceId;
+			for (influenceId = 0; influenceId < influenceCount; ++influenceId)
+			{
+				if (!influence || stricmp(influence->Value(), "INFLUENCE") != 0)
+				{
+					delete pCoreSubmesh;
+					CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+					return false;
+				}
+
+				node = influence->FirstChild();
+				if (!node)
+				{
+					delete pCoreSubmesh;
+					CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+					return false;
+				}
+				TiXmlText* influencedata = node->ToText();
+				if (!influencedata)
+				{
+					delete pCoreSubmesh;
+					CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+					return false;
+				}
+
+				Vertex.vectorInfluence[influenceId].boneId = atoi(influence->Attribute("ID"));
+
+				Vertex.vectorInfluence[influenceId].weight = (float)atof(influencedata->Value());
+
+				influence = influence->NextSiblingElement();
+			}
+
+			// set vertex in the core submesh instance
+			pCoreSubmesh->setVertex(vertexId, Vertex);
+
+			TiXmlElement *physique = influence;
+
+
+
+			// load the physical property of the vertex if there are springs in the core submesh
+			if (springCount > 0)
+			{
+				CalCoreSubmesh::PhysicalProperty physicalProperty;
+
+				if (!physique || stricmp(physique->Value(), "PHYSIQUE") != 0)
+				{
+					delete pCoreSubmesh;
+					CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+					return false;
+				}
+				node = physique->FirstChild();
+				if (!node)
+				{
+					delete pCoreSubmesh;
+					CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+					return false;
+				}
+				TiXmlText* physiquedata = node->ToText();
+				if (!physiquedata)
+				{
+					delete pCoreSubmesh;
+					CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+					return false;
+				}
+
+				physicalProperty.weight = (float)atof(physiquedata->Value());
+
+				// set the physical property in the core submesh instance
+				pCoreSubmesh->setPhysicalProperty(vertexId, physicalProperty);
+
+			}
+
+
+			vertex = vertex->NextSiblingElement();
+		}
+
+		TiXmlElement *spring = vertex;
+
+		// load all springs
+		int springId;
+		for (springId = 0; springId < springCount; ++springId)
+		{
+			CalCoreSubmesh::Spring Spring;
+			if (!spring || stricmp(spring->Value(), "SPRING") != 0)
+			{
+				delete pCoreSubmesh;
+				CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+				return false;
+			}
+			str.clear();
+			str << spring->Attribute("VERTEXID");
+			str >> Spring.vertexId[0] >> Spring.vertexId[1];
+			Spring.springCoefficient = (float)atof(spring->Attribute("COEF"));
+			Spring.idleLength = (float)atof(spring->Attribute("LENGTH"));
+
+			// set spring in the core submesh instance
+			pCoreSubmesh->setSpring(springId, Spring);
+			spring = spring->NextSiblingElement();
+		}
+
+		TiXmlElement *face = spring;
+
+		// load all faces
+		int faceId;
+		for (faceId = 0; faceId < faceCount; ++faceId)
+		{
+			CalCoreSubmesh::Face Face;
+
+			if (!face || stricmp(face->Value(), "FACE") != 0)
+			{
+				delete pCoreSubmesh;
+				CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+				return false;
+			}
+
+			int tmp[3];
+
+			// load data of the face
+
+			str.clear();
+			str << face->Attribute("VERTEXID");
+			str >> tmp[0] >> tmp[1] >> tmp[2];
+
+			if (sizeof(CalIndex) == 2)
+			{
+				if (tmp[0]>65535 || tmp[1]>65535 || tmp[2]>65535)
+				{
+					CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+					delete pCoreSubmesh;
+					return 0;
+				}
+			}
+			Face.vertexId[0] = tmp[0];
+			Face.vertexId[1] = tmp[1];
+			Face.vertexId[2] = tmp[2];
+
+			pCoreSubmesh->setFace(faceId, Face);
+
+			face = face->NextSiblingElement();
+		}
+		submesh = submesh->NextSiblingElement();
+
+		// add the core submesh to the core mesh instance
+		pCoreMesh->addCoreSubmesh(pCoreSubmesh);
+	}
+
+	// explicitly close the file
+	doc.Clear();
+	return pCoreMesh;
+}
+
  /*****************************************************************************/
 /** Loads a core material instance from a XML file.
   *
