@@ -1620,6 +1620,7 @@ CalCoreSkeletonPtr CalLoader::loadXmlCoreSkeleton(const std::string& strFilename
 CalCoreAnimationPtr CalLoader::loadXmlCoreAnimation(const std::string& strFilename, CalCoreSkeleton *skel)
 {
 	std::stringstream str;
+
 	TiXmlDocument doc(strFilename);
 	if(!doc.LoadFile())
 	{
@@ -1844,6 +1845,258 @@ CalCoreAnimationPtr CalLoader::loadXmlCoreAnimation(const std::string& strFilena
 
 		pCoreAnimation->addCoreTrack(pCoreTrack);	  
 		track=track->NextSiblingElement();
+	}
+
+	// explicitly close the file
+	doc.Clear();
+
+	return pCoreAnimation;
+}
+
+/*****************************************************************************/
+/** Loads a core animation instance from a XML buffer.
+*
+* This function loads a core animation instance from a XML buffer.
+*
+* @param buffer The file to load the core animation instance from.
+*
+* @return One of the following values:
+*         \li a pointer to the core animation
+*         \li \b 0 if an error happened
+*****************************************************************************/
+
+CalCoreAnimationPtr CalLoader::loadXmlCoreAnimation(const char * inputBuffer, CalCoreSkeleton *skel)
+{
+	std::stringstream str;
+	TiXmlDocument doc;
+
+	if ((memcmp(inputBuffer, "<HEADER", 7) == 0) || (memcmp(inputBuffer, "<ANIMATION", 10) == 0))
+	{
+		doc.Parse(static_cast<const char*>(inputBuffer));
+		if (doc.Error())
+		{
+			CalError::setLastError(CalError::FILE_PARSER_FAILED, __FILE__, __LINE__);
+			return 0;
+		}
+	}
+
+	TiXmlNode* node;
+
+	TiXmlElement*animation = doc.FirstChildElement();
+	if (!animation)
+	{
+		CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+		return false;
+	}
+
+	if (stricmp(animation->Value(), "HEADER") == 0)
+	{
+		if (stricmp(animation->Attribute("MAGIC"), Cal::ANIMATION_XMLFILE_MAGIC) != 0)
+		{
+			CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+			return false;
+		}
+
+		if (atoi(animation->Attribute("VERSION")) < Cal::EARLIEST_COMPATIBLE_FILE_VERSION)
+		{
+			CalError::setLastError(CalError::INCOMPATIBLE_FILE_VERSION, __FILE__, __LINE__);
+			return false;
+		}
+
+		animation = animation->NextSiblingElement();
+	}
+
+	if (!animation || stricmp(animation->Value(), "ANIMATION") != 0)
+	{
+		CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+		return false;
+	}
+
+	if (animation->Attribute("MAGIC") != NULL && stricmp(animation->Attribute("MAGIC"), Cal::ANIMATION_XMLFILE_MAGIC) != 0)
+	{
+		CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+		return false;
+	}
+
+	if (animation->Attribute("VERSION") != NULL && atoi(animation->Attribute("VERSION")) < Cal::EARLIEST_COMPATIBLE_FILE_VERSION)
+	{
+		CalError::setLastError(CalError::INCOMPATIBLE_FILE_VERSION, __FILE__, __LINE__);
+		return false;
+	}
+
+	int trackCount = atoi(animation->Attribute("NUMTRACKS"));
+	float duration = (float)atof(animation->Attribute("DURATION"));
+
+	// allocate a new core animation instance
+	CalCoreAnimation *pCoreAnimation;
+	pCoreAnimation = new CalCoreAnimation();
+	if (pCoreAnimation == 0)
+	{
+		CalError::setLastError(CalError::MEMORY_ALLOCATION_FAILED, __FILE__, __LINE__);
+		return 0;
+	}
+
+	// check for a valid duration
+	if (duration <= 0.0f)
+	{
+		CalError::setLastError(CalError::INVALID_ANIMATION_DURATION, __FILE__, __LINE__);
+		return 0;
+	}
+
+	// set the duration in the core animation instance
+	pCoreAnimation->setDuration(duration);
+	TiXmlElement* track = animation->FirstChildElement();
+
+	// load all core bones
+	int trackId;
+	for (trackId = 0; trackId < trackCount; ++trackId)
+	{
+		if (!track || stricmp(track->Value(), "TRACK") != 0)
+		{
+			CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+			return 0;
+		}
+
+		CalCoreTrack *pCoreTrack;
+
+		pCoreTrack = new CalCoreTrack();
+		if (pCoreTrack == 0)
+		{
+			CalError::setLastError(CalError::MEMORY_ALLOCATION_FAILED, __FILE__, __LINE__);
+			return 0;
+		}
+
+		// create the core track instance
+		if (!pCoreTrack->create())
+		{
+			delete pCoreTrack;
+			return 0;
+		}
+
+		int coreBoneId = atoi(track->Attribute("BONEID"));
+
+		// link the core track to the appropriate core bone instance
+		pCoreTrack->setCoreBoneId(coreBoneId);
+
+		// read the number of keyframes
+		int keyframeCount = atoi(track->Attribute("NUMKEYFRAMES"));
+
+		if (keyframeCount <= 0)
+		{
+			CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+			return 0;
+		}
+
+		TiXmlElement* keyframe = track->FirstChildElement();
+
+		// load all core keyframes
+		int keyframeId;
+		for (keyframeId = 0; keyframeId < keyframeCount; ++keyframeId)
+		{
+			// load the core keyframe
+			if (!keyframe || stricmp(keyframe->Value(), "KEYFRAME") != 0)
+			{
+				CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+				return 0;
+			}
+
+			float time = (float)atof(keyframe->Attribute("TIME"));
+
+			TiXmlElement* translation = keyframe->FirstChildElement();
+			if (!translation || stricmp(translation->Value(), "TRANSLATION") != 0)
+			{
+				CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+				return 0;
+			}
+
+			float tx, ty, tz;
+
+			node = translation->FirstChild();
+			if (!node)
+			{
+				CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+				return 0;
+			}
+
+			TiXmlText* translationdata = node->ToText();
+			if (!translationdata)
+			{
+				CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+				return 0;
+			}
+			str.clear();
+			str << translationdata->Value();
+			str >> tx >> ty >> tz;
+
+			TiXmlElement* rotation = translation->NextSiblingElement();
+			if (!rotation || stricmp(rotation->Value(), "ROTATION") != 0)
+			{
+				CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+				return 0;
+			}
+
+			float rx, ry, rz, rw;
+
+			node = rotation->FirstChild();
+			if (!node)
+			{
+				CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+				return 0;
+			}
+			TiXmlText* rotationdata = node->ToText();
+			if (!rotationdata)
+			{
+				CalError::setLastError(CalError::INVALID_FILE_FORMAT, __FILE__, __LINE__);
+				return 0;
+			}
+			str.clear();
+			str << rotationdata->Value();
+			str >> rx >> ry >> rz >> rw;
+
+			// allocate a new core keyframe instance
+
+			CalCoreKeyframe *pCoreKeyframe;
+			pCoreKeyframe = new CalCoreKeyframe();
+			if (pCoreKeyframe == 0)
+			{
+				CalError::setLastError(CalError::MEMORY_ALLOCATION_FAILED, __FILE__, __LINE__);
+				return 0;
+			}
+
+			// create the core keyframe instance
+			if (!pCoreKeyframe->create())
+			{
+				return 0;
+			}
+			// set all attributes of the keyframe
+			pCoreKeyframe->setTime(time);
+			pCoreKeyframe->setTranslation(CalVector(tx, ty, tz));
+			pCoreKeyframe->setRotation(CalQuaternion(rx, ry, rz, rw));
+
+			if (loadingMode & LOADER_ROTATE_X_AXIS)
+			{
+				// Check for anim rotation
+				if (skel && skel->getCoreBone(coreBoneId)->getParentId() == -1)  // root bone
+				{
+					// rotate root bone quaternion
+					CalQuaternion rot = pCoreKeyframe->getRotation();
+					CalQuaternion x_axis_90(0.7071067811f, 0.0f, 0.0f, 0.7071067811f);
+					rot *= x_axis_90;
+					pCoreKeyframe->setRotation(rot);
+					// rotate root bone displacement
+					CalVector trans = pCoreKeyframe->getTranslation();
+					trans *= x_axis_90;
+					pCoreKeyframe->setTranslation(trans);
+				}
+			}
+
+			// add the core keyframe to the core track instance
+			pCoreTrack->addCoreKeyframe(pCoreKeyframe);
+			keyframe = keyframe->NextSiblingElement();
+		}
+
+		pCoreAnimation->addCoreTrack(pCoreTrack);
+		track = track->NextSiblingElement();
 	}
 
 	// explicitly close the file

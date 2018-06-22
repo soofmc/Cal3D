@@ -37,8 +37,13 @@ public:
   int addCoreAnimation(CalCoreAnimation *pCoreAnimation);
   CalCoreAnimation *getCoreAnimation(int coreAnimationId);
   int getCoreAnimationCount();
+  
   int loadCoreAnimation(const std::string& strFilename);
   int loadCoreAnimation(const std::string& strFilename, const std::string& strAnimationName);
+  // PTM3DOR Specific
+  int loadCoreAnimation(unsigned char* data, bool isXML);
+  int loadCoreAnimation(unsigned char* data, bool isXML, const std::string& strAnimationName);
+
   int unloadCoreAnimation(const std::string& name);
   int unloadCoreAnimation(int coreAnimationId);
   bool saveCoreAnimation(const std::string& strFilename, int coreAnimationId);
@@ -58,6 +63,10 @@ public:
   int getCoreMaterialId(int coreMaterialThreadId, int coreMaterialSetId);
   int loadCoreMaterial(const std::string& strFilename);
   int loadCoreMaterial(const std::string& strFilename, const std::string& strMaterialName);
+  // PTM3DOR Specific
+  int loadCoreMaterial(unsigned char* data, bool isXML);
+  int loadCoreMaterial(unsigned char* data, bool isXML, const std::string& strMaterialName);
+
   int unloadCoreMaterial(const std::string& name);
   int unloadCoreMaterial(int coreMaterialId);
   bool saveCoreMaterial(const std::string& strFilename, int coreMaterialId);
@@ -71,6 +80,10 @@ public:
   int getCoreMeshCount();
   int loadCoreMesh(const std::string& strFilename);
   int loadCoreMesh(const std::string& strFilename, const std::string& strMeshName);
+  // PTM3DOR Specific
+  int loadCoreMesh(unsigned char* data, bool isXML);
+  int loadCoreMesh(unsigned char* data, bool isXML, const std::string& strMeshName);
+
   int unloadCoreMesh(const std::string& name);
   int unloadCoreMesh(int coreMeshId);
   bool saveCoreMesh(const std::string& strFilename, int coreMeshId);
@@ -80,6 +93,8 @@ public:
   // skeleton
   CalCoreSkeleton *getCoreSkeleton();
   bool loadCoreSkeleton(const std::string& strFilename);
+  // PTM3DOR Specific
+  bool loadCoreSkeleton(unsigned char* data, bool isXML);
   bool saveCoreSkeleton(const std::string& strFilename);
   void setCoreSkeleton(CalCoreSkeleton *pCoreSkeleton);
   void addBoneName(const std::string& strBoneName, int boneId);

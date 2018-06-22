@@ -461,6 +461,38 @@ int CalCoreModel::loadCoreAnimation(const std::string& strFilename, const std::s
   return id;
 }
 
+  // PTM3DOR Specific
+  int CalCoreModel::loadCoreAnimation(unsigned char * inputBuffer, bool isXML)
+  {
+	  // the core skeleton has to be loaded already
+	  if (m_pCoreSkeleton == 0)
+	  {
+		  CalError::setLastError(CalError::INVALID_HANDLE, __FILE__, __LINE__);
+		  return -1;
+	  }
+
+	  // recast the input
+	  const char* buffer = (const char*)inputBuffer;
+
+	  // load a new core animation
+	  CalCoreAnimationPtr pCoreAnimation = CalLoader::loadCoreAnimation(buffer);
+	  if (!pCoreAnimation) return -1;
+
+	  // add core animation to this core model
+	  int animationId = addCoreAnimation(pCoreAnimation.get());
+	  if (animationId == -1)
+	  {
+		  return -1;
+	  }
+
+	  return animationId;
+  }
+
+  int CalCoreModel::loadCoreAnimation(unsigned char * data, bool isXML, const std::string & strAnimationName)
+  {
+	  return 0;
+  }
+
  /*****************************************************************************/
 /** Delete the resources used by the named core animation. The name must 
   * be associated with a valid core animation Id with the function
@@ -591,6 +623,16 @@ int CalCoreModel::loadCoreMaterial(const std::string& strFilename, const std::st
   return id;
 }
 
+int CalCoreModel::loadCoreMaterial(unsigned char * data, bool isXML)
+{
+	return 0;
+}
+
+int CalCoreModel::loadCoreMaterial(unsigned char * data, bool isXML, const std::string & strMaterialName)
+{
+	return 0;
+}
+
  /*****************************************************************************/
 /** Delete the resources used by the named core material. The name must 
   * be associated with a valid core material Id with the function
@@ -718,6 +760,16 @@ int CalCoreModel::loadCoreMesh(const std::string& strFilename, const std::string
   }
 
   return id;
+}
+
+int CalCoreModel::loadCoreMesh(unsigned char * data, bool isXML)
+{
+	return 0;
+}
+
+int CalCoreModel::loadCoreMesh(unsigned char * data, bool isXML, const std::string & strMeshName)
+{
+	return 0;
 }
 
 
@@ -884,6 +936,11 @@ bool CalCoreModel::saveCoreMesh(const std::string& strFilename, int coreMeshId)
   *         \li \b true if successful
   *         \li \b false if an error happend
   *****************************************************************************/
+
+bool CalCoreModel::loadCoreSkeleton(unsigned char * data, bool isXML)
+{
+	return false;
+}
 
 bool CalCoreModel::saveCoreSkeleton(const std::string& strFilename)
 {

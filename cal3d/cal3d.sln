@@ -1,0 +1,116 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2026
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Cal3D", "src\cal3d\cal3d.vcxproj", "{22696930-8620-4DA6-9380-A06CB37780A9}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Cal3D_Cally", "examples\cally\cally.vcxproj", "{B9F4179C-1537-4FC1-AAC7-3A5B87E77571}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Cal3D_MiniViewer", "examples\miniviewer_gl\cal3d_miniviewer.vcxproj", "{6BB731BB-8DAB-48FB-9D9A-E7E386A4353A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cal3d_converter", "src\cal3d_converter.vcxproj", "{B4A6E8F4-EEE4-4EB5-8EDB-B65763D68C0A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cal3d_importer", "plugins\cal3d_max_importer\cal3d_importer.vcxproj", "{C91DDF14-9D4E-42C5-BB89-85EE01B8D142}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cal3d_max_exporter", "plugins\cal3d_max_exporter\cal3d_max_exporter.vcxproj", "{BAE26E40-1DC7-4CFB-809C-AB1E6BBB0D1A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{22696930-8620-4DA6-9380-A06CB37780A9} = {22696930-8620-4DA6-9380-A06CB37780A9}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cal3d_maya_exporter", "plugins\cal3d_maya_exporter\cal3d_maya_exporter.vcxproj", "{54476214-7167-40DB-A22A-3EF31AD7DA73}"
+	ProjectSection(ProjectDependencies) = postProject
+		{22696930-8620-4DA6-9380-A06CB37780A9} = {22696930-8620-4DA6-9380-A06CB37780A9}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cal3d_milk_exporter", "plugins\cal3d_milk_exporter\cal3d_milk_exporter.vcxproj", "{350E8AAF-2101-4DBC-B429-C276D0C37AA5}"
+	ProjectSection(ProjectDependencies) = postProject
+		{22696930-8620-4DA6-9380-A06CB37780A9} = {22696930-8620-4DA6-9380-A06CB37780A9}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cal3d_miniviewer_d3d", "examples\miniviewer_d3d\cal3d_miniviewer_d3d.vcxproj", "{CBB2915C-8395-4051-B156-8FF2A7A616A0}"
+EndProject
+Project("{059D6162-CD51-11D0-AE1F-00A0C90FFFC3}") = "cal3d_miniviewer_d3d_bump", "examples\miniviewer_d3d_bump\cal3d_miniviewer_d3d_bump.dsp", "{2A784450-F5AE-4B35-8BCB-5A8E7B97AC40}"
+	ProjectSection(ProjectDependencies) = postProject
+		{22696930-8620-4DA6-9380-A06CB37780A9} = {22696930-8620-4DA6-9380-A06CB37780A9}
+	EndProjectSection
+EndProject
+Project("{059D6162-CD51-11D0-AE1F-00A0C90FFFC3}") = "cal3d_miniviewer_d3d_vs", "examples\miniviewer_d3d_vs\cal3d_miniviewer_d3d_vs.dsp", "{EDBA723E-7A33-4348-B9D8-1AC996F1101F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{22696930-8620-4DA6-9380-A06CB37780A9} = {22696930-8620-4DA6-9380-A06CB37780A9}
+	EndProjectSection
+EndProject
+Project("{059D6162-CD51-11D0-AE1F-00A0C90FFFC3}") = "cal3d_miniviewer_gl_vp", "examples\miniviewer_gl_vp\cal3d_miniviewer_gl_vp.dsp", "{B8A7C962-FFD2-4763-A7D0-3FEC9D74AD1A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{22696930-8620-4DA6-9380-A06CB37780A9} = {22696930-8620-4DA6-9380-A06CB37780A9}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+		Template|x86 = Template|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{22696930-8620-4DA6-9380-A06CB37780A9}.Debug|x86.ActiveCfg = Debug|Win32
+		{22696930-8620-4DA6-9380-A06CB37780A9}.Debug|x86.Build.0 = Debug|Win32
+		{22696930-8620-4DA6-9380-A06CB37780A9}.Release|x86.ActiveCfg = Release|Win32
+		{22696930-8620-4DA6-9380-A06CB37780A9}.Release|x86.Build.0 = Release|Win32
+		{22696930-8620-4DA6-9380-A06CB37780A9}.Template|x86.ActiveCfg = Release|Win32
+		{22696930-8620-4DA6-9380-A06CB37780A9}.Template|x86.Build.0 = Release|Win32
+		{B9F4179C-1537-4FC1-AAC7-3A5B87E77571}.Debug|x86.ActiveCfg = Debug|Win32
+		{B9F4179C-1537-4FC1-AAC7-3A5B87E77571}.Debug|x86.Build.0 = Debug|Win32
+		{B9F4179C-1537-4FC1-AAC7-3A5B87E77571}.Release|x86.ActiveCfg = Release|Win32
+		{B9F4179C-1537-4FC1-AAC7-3A5B87E77571}.Release|x86.Build.0 = Release|Win32
+		{B9F4179C-1537-4FC1-AAC7-3A5B87E77571}.Template|x86.ActiveCfg = Template|Win32
+		{B9F4179C-1537-4FC1-AAC7-3A5B87E77571}.Template|x86.Build.0 = Template|Win32
+		{6BB731BB-8DAB-48FB-9D9A-E7E386A4353A}.Debug|x86.ActiveCfg = Debug|Win32
+		{6BB731BB-8DAB-48FB-9D9A-E7E386A4353A}.Debug|x86.Build.0 = Debug|Win32
+		{6BB731BB-8DAB-48FB-9D9A-E7E386A4353A}.Release|x86.ActiveCfg = Release|Win32
+		{6BB731BB-8DAB-48FB-9D9A-E7E386A4353A}.Release|x86.Build.0 = Release|Win32
+		{6BB731BB-8DAB-48FB-9D9A-E7E386A4353A}.Template|x86.ActiveCfg = Template|Win32
+		{6BB731BB-8DAB-48FB-9D9A-E7E386A4353A}.Template|x86.Build.0 = Template|Win32
+		{B4A6E8F4-EEE4-4EB5-8EDB-B65763D68C0A}.Debug|x86.ActiveCfg = Debug|Win32
+		{B4A6E8F4-EEE4-4EB5-8EDB-B65763D68C0A}.Debug|x86.Build.0 = Debug|Win32
+		{B4A6E8F4-EEE4-4EB5-8EDB-B65763D68C0A}.Release|x86.ActiveCfg = Release|Win32
+		{B4A6E8F4-EEE4-4EB5-8EDB-B65763D68C0A}.Release|x86.Build.0 = Release|Win32
+		{B4A6E8F4-EEE4-4EB5-8EDB-B65763D68C0A}.Template|x86.ActiveCfg = Template|Win32
+		{B4A6E8F4-EEE4-4EB5-8EDB-B65763D68C0A}.Template|x86.Build.0 = Template|Win32
+		{C91DDF14-9D4E-42C5-BB89-85EE01B8D142}.Debug|x86.ActiveCfg = Debug|Win32
+		{C91DDF14-9D4E-42C5-BB89-85EE01B8D142}.Debug|x86.Build.0 = Debug|Win32
+		{C91DDF14-9D4E-42C5-BB89-85EE01B8D142}.Release|x86.ActiveCfg = Release|Win32
+		{C91DDF14-9D4E-42C5-BB89-85EE01B8D142}.Release|x86.Build.0 = Release|Win32
+		{C91DDF14-9D4E-42C5-BB89-85EE01B8D142}.Template|x86.ActiveCfg = Template|Win32
+		{C91DDF14-9D4E-42C5-BB89-85EE01B8D142}.Template|x86.Build.0 = Template|Win32
+		{BAE26E40-1DC7-4CFB-809C-AB1E6BBB0D1A}.Debug|x86.ActiveCfg = Debug|Win32
+		{BAE26E40-1DC7-4CFB-809C-AB1E6BBB0D1A}.Debug|x86.Build.0 = Debug|Win32
+		{BAE26E40-1DC7-4CFB-809C-AB1E6BBB0D1A}.Release|x86.ActiveCfg = Release|Win32
+		{BAE26E40-1DC7-4CFB-809C-AB1E6BBB0D1A}.Release|x86.Build.0 = Release|Win32
+		{BAE26E40-1DC7-4CFB-809C-AB1E6BBB0D1A}.Template|x86.ActiveCfg = Template|Win32
+		{BAE26E40-1DC7-4CFB-809C-AB1E6BBB0D1A}.Template|x86.Build.0 = Template|Win32
+		{54476214-7167-40DB-A22A-3EF31AD7DA73}.Debug|x86.ActiveCfg = Debug|Win32
+		{54476214-7167-40DB-A22A-3EF31AD7DA73}.Debug|x86.Build.0 = Debug|Win32
+		{54476214-7167-40DB-A22A-3EF31AD7DA73}.Release|x86.ActiveCfg = Release|Win32
+		{54476214-7167-40DB-A22A-3EF31AD7DA73}.Release|x86.Build.0 = Release|Win32
+		{54476214-7167-40DB-A22A-3EF31AD7DA73}.Template|x86.ActiveCfg = Template|Win32
+		{54476214-7167-40DB-A22A-3EF31AD7DA73}.Template|x86.Build.0 = Template|Win32
+		{350E8AAF-2101-4DBC-B429-C276D0C37AA5}.Debug|x86.ActiveCfg = Debug|Win32
+		{350E8AAF-2101-4DBC-B429-C276D0C37AA5}.Debug|x86.Build.0 = Debug|Win32
+		{350E8AAF-2101-4DBC-B429-C276D0C37AA5}.Release|x86.ActiveCfg = Release|Win32
+		{350E8AAF-2101-4DBC-B429-C276D0C37AA5}.Release|x86.Build.0 = Release|Win32
+		{350E8AAF-2101-4DBC-B429-C276D0C37AA5}.Template|x86.ActiveCfg = Template|Win32
+		{350E8AAF-2101-4DBC-B429-C276D0C37AA5}.Template|x86.Build.0 = Template|Win32
+		{CBB2915C-8395-4051-B156-8FF2A7A616A0}.Debug|x86.ActiveCfg = Debug|Win32
+		{CBB2915C-8395-4051-B156-8FF2A7A616A0}.Debug|x86.Build.0 = Debug|Win32
+		{CBB2915C-8395-4051-B156-8FF2A7A616A0}.Release|x86.ActiveCfg = Release|Win32
+		{CBB2915C-8395-4051-B156-8FF2A7A616A0}.Release|x86.Build.0 = Release|Win32
+		{CBB2915C-8395-4051-B156-8FF2A7A616A0}.Template|x86.ActiveCfg = Template|Win32
+		{CBB2915C-8395-4051-B156-8FF2A7A616A0}.Template|x86.Build.0 = Template|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {355B14EC-0FB2-448A-814E-150A4BF6B01A}
+	EndGlobalSection
+EndGlobal
