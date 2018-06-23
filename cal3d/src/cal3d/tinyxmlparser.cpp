@@ -152,18 +152,21 @@ void TiXmlParsingData::Stamp( const char* now )
 
 const char* TiXmlBase::SkipWhiteSpace( const char* p )
 {
-	if ( !p || !*p )
+	if (!p || !*p)
 	{
 		return 0;
 	}
-	while ( p && *p )
+	while (p && *p)
 	{
-		if ( isspace( *p ) || *p == '\n' || *p =='\r' )		// Still using old rules for white space.
-			++p;
-		else
-			break;
+		if ((int)*p >= -1 && (int)*p <= 255)
+		{
+			if (isspace(*p) || *p == '\n' || *p == '\r')		// Still using old rules for white space.
+				++p;
+			else
+				break;
+		}
 	}
-
+	
 	return p;
 }
 
@@ -548,7 +551,7 @@ TiXmlNode* TiXmlNode::Identify( const char* p )
 		#ifdef DEBUG_PARSER
 			TIXML_LOG( "XML parsing Declaration\n" );
 		#endif
-		returnNode = new TiXmlDeclaration();
+		returnNode = new(std::nothrow) TiXmlDeclaration();
 	}
 	else if (    isalpha( *(p+1) )
 			  || *(p+1) == '_' )
@@ -556,21 +559,21 @@ TiXmlNode* TiXmlNode::Identify( const char* p )
 		#ifdef DEBUG_PARSER
 			TIXML_LOG( "XML parsing Element\n" );
 		#endif
-		returnNode = new TiXmlElement( "" );
+		returnNode = new(std::nothrow) TiXmlElement( "" );
 	}
 	else if ( StringEqual( p, commentHeader, false ) )
 	{
 		#ifdef DEBUG_PARSER
 			TIXML_LOG( "XML parsing Comment\n" );
 		#endif
-		returnNode = new TiXmlComment();
+		returnNode = new(std::nothrow) TiXmlComment();
 	}
 	else
 	{
 		#ifdef DEBUG_PARSER
 			TIXML_LOG( "XML parsing Unknown\n" );
 		#endif
-		returnNode = new TiXmlUnknown();
+		returnNode = new(std::nothrow) TiXmlUnknown();
 	}
 
 	if ( returnNode )
@@ -779,7 +782,7 @@ const char* TiXmlElement::Parse( const char* p, TiXmlParsingData* data )
 		else
 		{
 			// Try to read an attribute:
-			TiXmlAttribute* attrib = new TiXmlAttribute();
+			TiXmlAttribute* attrib = new(std::nothrow) TiXmlAttribute();
 			if ( !attrib )
 			{
 				if ( document ) document->SetError( TIXML_ERROR_OUT_OF_MEMORY, pErr, data );
@@ -824,7 +827,7 @@ const char* TiXmlElement::ReadValue( const char* p, TiXmlParsingData* data )
 		if ( *p != '<' )
 		{
 			// Take what we have, make a text element.
-			TiXmlText* textNode = new TiXmlText( "" );
+			TiXmlText* textNode = new(std::nothrow) TiXmlText( "" );
 
 			if ( !textNode )
 			{
