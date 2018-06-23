@@ -475,7 +475,7 @@ int CalCoreModel::loadCoreAnimation(const std::string& strFilename, const std::s
 	  const char* buffer = (const char*)inputBuffer;
 
 	  // load a new core animation
-	  CalCoreAnimationPtr pCoreAnimation = CalLoader::loadXmlCoreAnimation(buffer, m_pCoreSkeleton.get());
+	  CalCoreAnimationPtr pCoreAnimation = CalLoader::loadCoreAnimation((void*)buffer, m_pCoreSkeleton.get());
 	  if (!pCoreAnimation) return -1;
 
 	  // add core animation to this core model
@@ -650,7 +650,7 @@ int CalCoreModel::loadCoreMaterial(unsigned char* inputBuffer, bool isXML)
 	const char* buffer = (const char*)inputBuffer;
 
 	// load a new core material
-	CalCoreMaterialPtr pCoreMaterial = CalLoader::loadXmlCoreMaterial(buffer);
+	CalCoreMaterialPtr pCoreMaterial = CalLoader::loadCoreMaterial((void*)buffer);
 	if (!pCoreMaterial) return -1;
 
 	// add core material to this core model
@@ -804,7 +804,7 @@ int CalCoreModel::loadCoreMesh(unsigned char * inputBuffer, bool isXML)
 	const char* buffer = (const char*)inputBuffer;
 
 	// load a new core mesh
-	CalCoreMeshPtr pCoreMesh = CalLoader::loadCoreMesh(buffer);
+	CalCoreMeshPtr pCoreMesh = CalLoader::loadXmlCoreMesh(buffer);
 	if (!pCoreMesh) return -1;
 
 	// add core mesh to this core model
@@ -905,7 +905,7 @@ bool CalCoreModel::loadCoreSkeleton(unsigned char * inputBuffer, bool isXML)
 	const char* buffer = (const char*)inputBuffer;
 
 	// load a new core skeleton
-	m_pCoreSkeleton = CalLoader::loadXmlCoreSkeleton(buffer);
+	m_pCoreSkeleton = CalLoader::loadCoreSkeleton((void*)buffer);
 	if (!m_pCoreSkeleton) return false;
 
 	return true;
