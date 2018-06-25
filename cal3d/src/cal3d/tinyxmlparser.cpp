@@ -158,12 +158,16 @@ const char* TiXmlBase::SkipWhiteSpace( const char* p )
 	}
 	while (p && *p)
 	{
-		if ((int)*p >= -1 && (int)*p <= 255)
+		if ((int)*p >= 0 && (int)*p <= 255)
 		{
-			if (isspace(*p) || *p == '\n' || *p == '\r')		// Still using old rules for white space.
+			if (*p == ' ' || *p == '\n' || *p == '\r' || *p == '\t' || *p == '\v' || *p == '\f')		// Still using old rules for white space.
 				++p;
 			else
 				break;
+		}
+		else
+		{
+			break;
 		}
 	}
 	
